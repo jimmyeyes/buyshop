@@ -1,0 +1,749 @@
+<?php
+if (!defined('BASEPATH'))
+	exit('No direct script access allowed');
+
+class Product extends CI_Controller {
+
+	/**
+	 * Index Page for this controller.
+	 *
+	 * Maps to the following URL
+	 * 		http://example.com/index.php/welcome
+	 *	- or -
+	 * 		http://example.com/index.php/welcome/index
+	 *	- or -
+	 * Since this controller is set as the default controller in
+	 * config/routes.php, it's displayed at http://example.com/
+	 *
+	 * So any other public methods not prefixed with an underscore will
+	 * map to /index.php/welcome/<method_name>
+	 * @see http://codeigniter.com/user_guide/general/urls.html
+	 */
+	public function index() {
+
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		$date['adminurl'] = $path[1] . "product/";
+		$sql="SELECT m.*,r1.companyname,r2.category FROM `product` m left join company r1 on m.companyid=r1.companyid left join category r2 on m.categoryid=r2.categoryid";
+		//echo $sql;
+		$date['query'] = $this -> db -> query($sql);
+		
+			$query = $this -> db -> query($sql);
+			$string="";
+			foreach($query->result() as $row){
+				if($string==""){
+					$string=$row->productid;
+				}else{
+					$string.=",".$row->productid;
+				}
+			}
+			
+			$date['productid']=$string;
+		
+		
+		$sql="SELECT * from  category ";
+		//echo $sql;
+		$date['querycate'] = $this -> db -> query($sql);
+
+		$this -> master2 -> view('product/product_view', $date);
+	}
+	
+
+	function productcategory() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		
+		$date['adminurl'] = $path[1] . "product/";
+		$date['query'] = $this -> db -> get('category');
+		$this -> master2 -> view('product/category_view', $date);
+
+	}
+
+	function productcate(){
+	
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$id = $this -> uri -> segment('3', 0);
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		
+		$date['adminurl'] = $path[1] . "product/";
+		$sql="SELECT m.*,r1.companyname,r2.category FROM `product` m left join company r1 on m.companyid=r1.companyid left join category r2 on m.categoryid=r2.categoryid where m.categoryid='".$id."'";
+		//echo $sql;
+		$date['query'] = $this -> db -> query($sql);
+
+		$this -> master2 -> view('product/cateproduct_view', $date);
+	
+	}
+
+	public function category_add() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		$category = $this -> input -> get_post('category');
+		$categoryno = $this -> input -> get_post('categoryno');
+		
+		$sql="select count(*) as count from category where categoryno='".$categoryno."' ";
+//echo $sql;
+		$query=$this->db->query($sql)->row();
+		if($query->count >0){
+			echo "代號重複<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}		
+
+
+		$sql = "insert into category (categoryno,category,createtime) values ('" . $categoryno . "','" . $category . "',NOW())";
+		$this -> db -> query($sql);
+
+		redirect('product/productcategory', 'refresh');
+	}
+
+	public function category_del() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		$id = $this -> input -> get_post('id');
+		$sql = "delete from category where categoryid='" . $id . "'";
+		$this -> db -> query($sql);
+		redirect('product/productcategory', 'refresh');
+	}
+
+	function category_edit() {
+
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		$path = $this -> all_model -> getPath();
+		$date['url'] = $path[0];
+		$date['adminurl'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		$id = $this -> uri -> segment('3', '');
+		$sql = "select * from category  where id='$id' order by sort asc";
+		$date['category'] = $this -> db -> query($sql) -> row();
+		$this -> master2 -> view('admin/categorydetail_view', $date);
+	}
+
+	public function category_update() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$category = $this -> input -> get_post('o_category');
+		$o_categoryno = $this -> input -> get_post('o_categoryno');
+	    $sql="select count(*) as count from category where categoryno='".$o_categoryno."' ";
+//echo $sql;
+		$query=$this->db->query($sql)->row();
+		if($query->count >1){
+			echo "代號重複<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}		
+		
+
+		$id = $this -> input -> get_post('id');
+		$sql = "update category set categoryno='".$o_categoryno."', category='" . $category . "'  where categoryid='" . $id . "'";
+		$this -> db -> query($sql);
+		redirect('product/productcategory', 'refresh');
+	}
+
+
+
+	function product_adds() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+		$name = $this -> input -> get_post('name');
+		if ($name == null) {
+			echo "不能空白<br>
+		<a href='javascript:history.back()'>back</a>";
+			return;
+		}
+		$sql = "insert into product (prodname,createtime) values ('$name',NOW())";
+		$this -> db -> query($sql);
+		$id = $this -> db -> insert_id();
+
+		redirect(base_url() . "/index.php/product/product_edit/" . $id, 'refresh');
+
+	}
+	
+	
+	
+	function addItem(){
+			$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$productid = $this -> input -> get_post('id');		
+		$category = $this -> input -> get_post('category');
+		$condition = $this -> input -> get_post('condition');
+		$Country = $this -> input -> get_post('Country');
+		$PaymentMethods = $this -> input -> get_post('PaymentMethods');
+		$PayPalEmailAddress = $this -> input -> get_post('PayPalEmailAddress');
+		$StartPrice = $this -> input -> get_post('StartPrice');
+		$pricetype = $this -> input -> get_post('pricetype');
+		$quantity = $this -> input -> get_post('quantity');
+		$ListingDuration = $this -> input -> get_post('ListingDuration');
+		$ReturnsAcceptedOption = $this -> input -> get_post('ReturnsAcceptedOption');
+		$RefundOption = $this -> input -> get_post('RefundOption');
+		$ReturnsWithinOption = $this -> input -> get_post('ReturnsWithinOption');
+		$Description = $this -> input -> get_post('Description');
+		$ShippingType = $this -> input -> get_post('ShippingType');
+		$ShippingServicePriority = $this -> input -> get_post('ShippingServicePriority');
+		$ShippingService = $this -> input -> get_post('ShippingService');
+		$ShippingServiceCost = $this -> input -> get_post('ShippingServiceCost');
+		$ListingType= $this -> input -> get_post('ListingType');
+		$ShippingCostPaidByOption= $this -> input -> get_post('ShippingCostPaidByOption');
+		$DispatchTimeMax= $this -> input -> get_post('DispatchTimeMax');
+		$accounttokenid= $this -> input -> get_post('accounttokenid');
+		
+		$InternationalShippingService = $this -> input -> get_post('InternationalShippingService');
+		$InternationalShippingServicePriority= $this -> input -> get_post('InternationalShippingServicePriority');
+		$InternationalShippingServiceCost= $this -> input -> get_post('InternationalShippingServiceCost');
+		$InternationalShippingServiceAdditionalCost= $this -> input -> get_post('InternationalShippingServiceAdditionalCost');
+		$InternationalShipToLocation= $this -> input -> get_post('InternationalShipToLocation');
+		$FreeShipping= $this -> input -> get_post('FreeShipping');
+	
+		
+		$data = array('FreeShipping' => $FreeShipping,'InternationalShipToLocation' => $InternationalShipToLocation,'InternationalShippingService' => $InternationalShippingService,'InternationalShippingServicePriority' => $InternationalShippingServicePriority,'InternationalShippingServiceCost' => $InternationalShippingServiceCost,'InternationalShippingServiceAdditionalCost' => $InternationalShippingServiceAdditionalCost,'accounttokenid' => $accounttokenid,'DispatchTimeMax' => $DispatchTimeMax,'ShippingCostPaidByOption' => $ShippingCostPaidByOption,'ListingType' => $ListingType,'category' => $category,'ConditionID' => $condition,'Country' => $Country,  'PaymentMethods' => $PaymentMethods, 'PayPalEmailAddress' => $PayPalEmailAddress, 'StartPrice' => $StartPrice, 'pricetype' => $pricetype, 'Quantity' => $quantity, 'ListingDuration' => $ListingDuration, 'ReturnsAcceptedOption' => $ReturnsAcceptedOption, 'RefundOption' => $RefundOption, 'ReturnsWithinOption' => $ReturnsWithinOption, 'ReturnsDescription' => $Description, 'ShippingType' => $ShippingType, 'ShippingServicePriority' => $ShippingServicePriority, 'ShippingService' => $ShippingService, 'ShippingServiceCost' => $ShippingServiceCost);
+
+		$this -> db -> where('productid', $productid);
+		$this -> db -> update('product', $data);
+		
+		$xml="";
+		if($pricetype=="auction"){
+			$xml= $this -> all_model->AddItem($accounttokenid,$productid);
+		}else{
+			$xml= $this -> all_model->AddFixPriceItem($accounttokenid,$productid);
+		}
+		
+	//	print_r($xml);
+		
+		$xml=simplexml_load_string($xml);
+		
+		
+		
+		
+		if($xml->ItemID){
+			$sql="insert into productonebay values ('','".$productid."','".$accounttokenid."','".$xml->ItemID."',NOW())";
+		
+			mysql_query($sql);
+			//echo $xml->ItemID;
+			redirect(base_url() . "/index.php/product/product_edit/" . $productid, 'refresh');
+		}else{
+			
+			if($xml->Ack=="Warning"){
+		  foreach($xml->Errors as $row){
+			echo $row->LongMessage."<br /><br />";
+		  }
+		}
+	
+		if($xml->Ack=="Failure"){
+			foreach($xml->Errors as $row){
+				echo $row->LongMessage."<br /><br />";
+			}
+		}
+			
+			
+		}
+		//
+			
+	}
+	
+
+	function product_edit_update() {
+			
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$id = $this -> input -> get_post('id');
+		$prodname = $this -> input -> get_post('prodname');
+		$model = $this -> input -> get_post('model');
+		$brand = $this -> input -> get_post('brand');
+		$imei = $this -> input -> get_post('imei');
+		$ean = $this -> input -> get_post('ean');
+		$upc = $this -> input -> get_post('upc');
+		$sku = $this -> input -> get_post('sku');
+		$mpn = $this -> input -> get_post('mpn');
+		$imei = $this -> input -> get_post('imei');
+		$spec = $this -> input -> get_post('spec');
+		$feture = $this -> input -> get_post('feture');
+		$amount = $this -> input -> get_post('amount');
+		$companyid = $this -> input -> get_post('companyid');
+		$categoryid = $this -> input -> get_post('categoryid');
+		$shippingid = $this -> input -> get_post('shippingid');
+		$amountother = $this -> input -> get_post('amountother');
+		$currencyid = $this -> input -> get_post('currencyid');
+		
+		$gram = $this -> input -> get_post('gram');
+		$sql="select count(*) as count from product where sku='".$sku."' ";
+//echo $sql;
+		$query=$this->db->query($sql)->row();
+		if($query->count >1){
+			echo "sku重複<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}
+		$arr=array('usamount','ukamount','auamount','amountother');
+		$sql="update product set $arr[$currencyid]='".$amountother."' where productid='$id' ";
+		//echo $sql;
+		$this -> db ->query($sql);
+		$data = array('brand' => $brand,'gram' => $gram,'shippingid' => $shippingid,  'currencyid' => $currencyid, 'categoryid' => $categoryid, 'companyid' => $companyid, 'prodname' => $prodname, 'model' => $model, 'imei' => $imei, 'ean' => $ean, 'upc' => $upc, 'sku' => $sku, 'mpn' => $mpn, 'imei' => $imei, 'spec' => $spec, 'feture' => $feture, 'amount' => $amount);
+
+		$this -> db -> where('productid', $id);
+		$this -> db -> update('product', $data);
+
+		//$sql = "update member set passwd='" . $password . "',authority='$authority' ,  name='$name', updatetime='$updatetime' where accountid='$id'";
+		//echo $sql;
+		//$this -> db -> query($sql);
+		redirect(base_url() . "/index.php/product/product_edit/" . $id, 'refresh');
+
+	}
+
+	function product_addcompanyprice(){
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$companyid = $this -> input -> get_post('companyid');
+		$proid = $this -> input -> get_post('proid');
+		$price = $this -> input -> get_post('price');
+		
+		if(!$price){
+			echo "金額沒有輸入<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}
+
+		$sql="insert into prodcoprice (productid,companyid,createtime,price) values ('".$proid."','".$companyid."',NOW(),'".$price."')";
+		$this -> db -> query($sql);
+		redirect(base_url() . "/index.php/product/product_edit/" . $proid, 'refresh');
+	}
+	
+	function product_companypricedel(){
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$id = $this -> uri -> segment('3', 0);
+		$proid = $this -> uri -> segment('4', 0);
+
+		$this -> db -> query("delete from prodcoprice  where prodcopriceid='" . $id . "'");
+
+		redirect(base_url() . "/index.php/product/product_edit/" . $proid, 'refresh');
+		
+	}
+	
+	function product_companypriceupdate(){
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo "沒有權限<br>
+		<a href='javascript:history.back()'>back</a>";
+			return;
+		}
+		
+		$prodcopriceid = $this -> input -> get_post("prodcopriceid");
+		$inventoryid = $this -> input -> get_post("inventoryid");
+
+		$chk = $this -> input -> get_post("chk");
+		$proid = $this -> input -> get_post("proid");
+		
+		$arr=explode(",",$prodcopriceid);
+		//print_r($chk) ;
+		
+		foreach($arr as $ar){
+			foreach($chk as $ch){
+			if($ch==$ar){
+			
+				$price = $this -> input -> get_post('price'.$ar);
+				
+				$sql="update prodcoprice set price='".$price."'  where  prodcopriceid='".$ar."'";
+				$this->db->query($sql);
+				//echo $sql;
+				}
+			}
+		}
+
+		redirect('/product/product_edit/'.$proid, 'refresh');
+		
+		
+	}
+	
+
+	function product_edit() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		 $date['authority']=$this->session->userdata('authority');
+		$date['id'] = $this -> uri -> segment('3', 0);
+		if($date['id'] ==""){
+			$row= $this -> db -> query("select max(productid) as id from product ") -> row();
+			$date['id']=$row->id;
+				redirect(base_url() . "/index.php/product/product_edit/" . $date['id'], 'refresh');
+		}
+		
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		$date['adminurl'] = $path[1] . "product/";
+		$date['row'] = $this -> db -> get_where('product', array('productid' => $date['id'])) -> row();
+		$date['queryimg'] = $this -> db -> query("SELECT * FROM product_img where proid='" . $date['id'] . "'");
+
+		$categoryid = $date['row'] -> categoryid;
+		$sql = "select m.*,r1.price,r2.companyname,r2.companyid ,r1.prodcopriceid from product m left join prodcoprice r1 on m.productid=r1.productid left join company r2 on r1.companyid=r2.companyid  where m.productid='" . $date['id'] . "'";
+		//echo $sql;
+		$date['querypro'] = $this -> db -> query($sql);
+		
+		$query = $this -> db -> query($sql);
+			$string="";
+			foreach($query->result() as $row){
+				if($string==""){
+					$string=$row->prodcopriceid;
+				}else{
+					$string.=",".$row->prodcopriceid;
+				}
+			}
+				$date['prodcopriceid']=$string;
+		
+		
+		$query=$this -> db -> query($sql);
+		$where ="(0";
+		foreach($query ->result() as $row ){
+			
+			if($row->companyid!="")
+			$where .=",".$row->companyid."";
+			
+		}
+		$where.=",0)";
+	//	echo $where;
+		
+		 $sql = "select * from company where companyid not in ".$where;
+		$date['company']= $this -> db -> query($sql);
+
+		$this -> master2 -> view('product/product_edit_view', $date);
+	}
+
+	function product_del() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$id = $this -> uri -> segment('3', 0);
+		$query = $this -> db -> query("select * from product_img where proid='" . $id . "'");
+		foreach ($query->result() as $row) {
+			if ($row -> url != "") {
+				unlink($row -> url);
+			}
+		}
+		$this -> db -> query("delete from product where productid='" . $id . "'");
+		$this -> db -> query("delete from product_img  where proid='" . $id . "'");
+		//$this -> db -> where('productid', $id);
+		//$this -> db -> delete('product');
+
+		redirect(base_url() . "/index.php/product/product", 'refresh');
+	}
+
+	function product_add_img() {
+			$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+
+		$path = "./uploads/product/";
+		$config['upload_path'] = $path;
+		$config['allowed_types'] = 'gif|jpg|png|docx|doc|pdf|xls|ppt|pptx|zip|jpeg';
+		$config['max_size'] = '100000';
+		$config['max_width'] = '5000';
+		$config['max_height'] = '5000';
+		$id = $this -> input -> get_post('id');
+
+		$this -> upload -> initialize($config);
+		if (!$this -> upload -> do_upload()) {
+			//錯誤發生時
+			$error = array('error' => $this -> upload -> display_errors(), 'adminurl' => base_url() . "index.php/product/", 'url' => base_url() . "/application/views/");
+			print_r($error);
+
+		} else {
+
+			// 成功上傳
+			$da = $this -> upload -> data();
+			$orgname = $da['orig_name'];
+			$file = $da['file_name'];
+
+			$this -> db -> query("INSERT INTO product_img (url, proid, name,createtime) values ('$path/" . $file . "', '" . $this -> input -> post('id') . "', '" . $orgname . "',NOW())");
+			redirect('product/product_edit/' . $this -> input -> post('id'), 'refresh');
+		}
+	}
+
+	function product_img_del() {
+		
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		$id = $this -> input -> post("id");
+		$proid = $this -> input -> post("proid");
+		$query = $this -> db -> query("select * from product_img where id='" . $id . "'");
+
+		foreach ($query->result() as $row) {
+			unlink($row -> url);
+		}
+		$this -> db -> query("delete from product_img where id='" . $id . "'");
+		redirect('/product/product_edit/' . $proid, 'refresh');
+	}
+	
+	function product_updatebath(){
+		
+		$bo = $this -> all_model -> getSecurity(16);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+		$productid = $this -> input -> get_post("productid");
+		$chk = $this -> input -> get_post("chk");
+		$arr=explode(",",$productid);
+		//print_r($chk) ;
+		foreach($arr as $ar){
+
+			foreach(@$chk as $ch){
+				//echo $ch;
+			if($ch==$ar){
+				$prodname = $this -> input -> get_post('prodname'.$ar);
+				$model = $this -> input -> get_post('model'.$ar);
+				$sku = $this -> input -> get_post('sku'.$ar);
+				$ean = $this -> input -> get_post('ean'.$ar);
+				$upc = $this -> input -> get_post('upc'.$ar);
+				$mpn = $this -> input -> get_post('mpn'.$ar);
+			
+
+				$sql="update product set prodname='".$prodname."', model='".$model."' , sku='".$sku."', ean='".$ean."', upc='".$upc."', mpn='".$mpn."' where productid='".$ar."'";
+					//echo $sql;
+				$query = $this -> db -> query($sql);
+	
+			}
+			}
+		}
+	
+	redirect('/product/product', 'refresh');
+		
+		
+	}
+	
+	function product_bath(){
+		
+		$bo = $this -> all_model -> getSecurity(16);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+		$companylist="";
+		$productid = $this -> input -> get_post("productid");
+		$chk = $this -> input -> get_post("chk");
+		$modtype = $this -> input -> get_post("modtype");
+		
+		$arr=explode(",",$productid);
+		//print_r($chk) ;
+		foreach($arr as $ar){
+			foreach(@$chk as $ch){
+				//echo $ch;
+			if($ch==$ar){
+				if($modtype==1){
+					if($companylist==""){
+						$companylist=$ar;
+					}else{
+						$companylist.=",".$ar;
+					}
+				}else{
+					$sql="delete from  product where productid='".$ar."'";
+					$this->db->query($sql);	
+				}
+			}
+			}
+		}
+		
+		if($modtype==2){
+			redirect('/product/product', 'refresh');			
+			return;
+		}
+		
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		$date['adminurl'] = $path[1] . "product/";
+		$sql="SELECT m.*,r1.companyname,r2.category FROM `product` m left join company r1 on m.companyid=r1.companyid left join category r2 on m.categoryid=r2.categoryid where m.productid in (".$companylist.")";
+		//echo $sql;
+		$date['query'] = $this -> db -> query($sql);
+		
+			$query = $this -> db -> query($sql);
+			$string="";
+			foreach($query->result() as $row){
+				if($string==""){
+					$string=$row->productid;
+				}else{
+					$string.=",".$row->productid;
+				}
+			}
+			
+			$date['productid']=$string;
+		$sql="SELECT * from  category ";
+		//echo $sql;
+		$date['querycate'] = $this -> db -> query($sql);
+		$this -> master2 -> view('product/productbath_view', $date);
+	}
+
+function updateebayitem(){
+	
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		 $date['authority']=$this->session->userdata('authority');
+		 
+	 
+		$date['id'] = $this -> uri -> segment('3', 0);
+		$date['itemid'] = $this -> uri -> segment('4', 0);
+		$date['accounttokenid'] = $this -> uri -> segment('5', 0);
+		
+		
+		if($date['id'] ==""){
+			$row= $this -> db -> query("select max(productid) as id from product ") -> row();
+			
+			echo "null";
+			//$date['id']=$row->id;
+			//redirect(base_url() . "/index.php/product/product_edit/" . $date['id'], 'refresh');
+		}
+		
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],8);
+		$date['adminurl'] = $path[1] . "product/";
+		$date['row'] = $this -> db -> get_where('product', array('productid' => $date['id'])) -> row();
+		$date['queryimg'] = $this -> db -> query("SELECT * FROM product_img where proid='" . $date['id'] . "'");
+
+		$categoryid = $date['row'] -> categoryid;
+		$sql = "select m.*,r1.price,r2.companyname,r2.companyid ,r1.prodcopriceid from product m left join prodcoprice r1 on m.productid=r1.productid left join company r2 on r1.companyid=r2.companyid  where m.productid='" . $date['id'] . "'";
+		//echo $sql;
+		$date['querypro'] = $this -> db -> query($sql);
+		
+		$query = $this -> db -> query($sql);
+			$string="";
+			foreach($query->result() as $row){
+				if($string==""){
+					$string=$row->prodcopriceid;
+				}else{
+					$string.=",".$row->prodcopriceid;
+				}
+			}
+				$date['prodcopriceid']=$string;
+
+		$query=$this -> db -> query($sql);
+		$where ="(0";
+		foreach($query ->result() as $row ){
+			
+			if($row->companyid!="")
+			$where .=",".$row->companyid."";
+			
+		}
+		$where.=",0)";
+	//	echo $where;
+		
+		 $sql = "select * from company where companyid not in ".$where;
+		$date['company']= $this -> db -> query($sql);
+
+		$this -> master2 -> view('product/updateebayitem_view', $date);
+	
+}
+
+
+function product_ebay_pic_update(){
+	
+		$bo = $this -> all_model -> getSecurity(8);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		 
+	   $productid = $this -> input -> get_post('productid');
+	   $itemid = $this -> input -> get_post('itemid');
+	   $accounttokenid = $this -> input -> get_post('accounttokenid');
+	
+	$respXmlObj=$this->all_model->product_ebay_pic_update($accounttokenid,$productid,$itemid);
+	
+	$respXmlObj=simplexml_load_string($respXmlObj);
+
+	//print_r($respXmlObj);
+	
+	redirect("/product/updateebayitem/".$productid."/".$itemid."/".$accounttokenid, 'refresh');
+	
+	
+}
+
+
+
+}
+
+/* End of file welcome.php */
+/* Location: ./application/controllers/welcome.php */

@@ -1,0 +1,226 @@
+<?= $menu ?>
+<div id="subnavbar"></div>
+<div id="content">
+	
+		<div id="tabs" class="box tabs themed_box">
+			<h2 class="box-header"></h2>
+			<ul class="tabs-nav">
+				<li class="tab"><a href="#tabs-1">一般設定</a></li>
+				<li class="tab"><a href="#tabs-2">ebay帳號綁定</a></li>
+				
+			</ul>
+			<div class="box-content">
+
+		<div id="tabs-1">
+			<div class="column half fl">
+		<div class="box themed_box">
+			<h2 class="box-header">匯率 </h2>
+			<div class="box-content">
+				<form action="<?= $adminurl ?>webconfig_update" method="post">
+					<label > PUS:</label><input class="form-field 10"  value="<?= $query->pus ?>" name="pus" type="text" />
+				
+					<label > PUK:</label>  <input class="form-field 10"  value="<?= $query->puk ?>" name="puk" type="text" />
+					
+					<label> PAU:</label>  <input class="form-field 10" value="<?= $query->pau ?>" name="pau" type="text" />
+					
+					<label > BUS:</label>  <input class="form-field 10" value="<?= $query->bus ?>" name="bus" type="text" />
+					<p>
+					<input type="submit" class="button themed" value="Update" />
+					<p>
+				</form>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div class="clear"></div>
+
+			<div class="box themed_box">
+			<h2 class="box-header">公式 </h2>
+			<div class="box-content">
+				<form action="<?= $adminurl ?>webconfig_fun_update" method="post">
+					<label class="form-label"> <h2>美金:</h2></label>
+					
+					費用Ａ
+					售價＊ <input class="form-field 10" value="<?= $query->usfee1 ?>" name="usfee1" type="text" />＋
+					<input class="form-field 10" value="<?= $query->usfee2 ?>" name="usfee2" type="text" />
+						<br>費用Ｂ -1
+						售價＊ <input class="form-field 10" value="<?= $query->usfee3 ?>" name="usfee3" type="text" />
+						<br>費用Ｂ -2
+						售價＊ <input class="form-field 10" value="<?= $query->usfee4 ?>" name="usfee4" type="text" />
+						<br>費用Ｂ -3
+						售價＊ <input class="form-field 10" value="<?= $query->usfee5 ?>" name="usfee5" type="text" />
+						
+						
+					<label class="form-label"> <h2>英鎊:</h2></label> 
+					
+					費用Ａ
+					售價＊ <input class="form-field 10" value="<?= $query->ukfee1 ?>" name="ukfee1" type="text" />＋
+					<input class="form-field 10" value="<?= $query->ukfee2 ?>" name="ukfee2" type="text" />
+						<br>費用Ｂ 
+						售價＊ <input class="form-field 10" value="<?= $query->ukfee3 ?>" name="ukfee3" type="text" />
+					
+					<label class="form-label"> <h2>澳幣:</h2></label>  
+					
+					費用Ａ
+					售價＊ <input class="form-field 10" value="<?= $query->aufee1 ?>" name="aufee1" type="text" />＋
+					<input class="form-field 10" value="<?= $query->aufee2 ?>" name="aufee2" type="text" />
+						<br>費用Ｂ 
+						售價＊ <input class="form-field 10" value="<?= $query->aufee3 ?>" name="aufee3" type="text" />
+					
+					<label class="form-label"> <h2>電匯:</h2></label>  
+					手續費<input class="form-field 10" value="<?= $query->busfee1 ?>" name="busfee1" type="text" />
+					<p>
+
+					<input type="submit" class="button themed" value="Update" />
+					<p>
+				</form>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div class="clear"></div>
+	</div>
+
+	<div class="column half fr">
+
+		<div class="box themed_box">
+			<h2 class="box-header"> Fedex IE運費</h2>
+			<div class="box-content">
+				<form action="<?= $adminurl ?>webconfig_shipping_update" method="post">
+	<?
+	$j=1;
+					$i=1;
+					foreach($shipping ->result() as $row){
+					?>
+					<label > <?=$row -> kg ?>  KG運費:</label>  <input class="form-field small" value="<?=$row -> fee ?>" name="shipping<?=$i ?>" type="text" />
+					
+					<?
+					$j++;
+					if($j==3){
+						echo "<p>";
+						$j=1;
+					}
+					$i++;
+					}
+					?>
+					
+						<input type="submit" class="button themed" value="Update" />
+						</form>
+			</div>
+		</div>
+		<div class="clear"></div>
+		
+		
+		<div class="box themed_box">
+			<h2 class="box-header"> 運送廠商</h2>
+			<div class="box-content">
+				
+				
+					<form action="<?= $adminurl ?>courier_adds" method="post">
+					  <input class="form-field small" value="" name="name" type="text" />
+					<input type="submit" class="button themed" value="Add" />
+					</form>
+				
+				<br />
+	<?
+					foreach($courier ->result() as $row){
+					?>
+					<form action="<?= $adminurl ?>courier_update" method="post">
+					  <input class="form-field small" value="<?=$row->name?>" name="name" type="text" />
+					 <input class="form-field small" value="<?=$row->courierid?>" name="courierid" type="hidden" />
+					
+						<input type="submit" class="button themed" value="Update" />
+						<a href="<?= $adminurl ?>courier_del/<?=$row->courierid?>" class="button themed">DEL</a>
+						</form>
+						<br />
+					<?}
+					
+					?>
+			</div>
+		</div>
+		<div class="clear"></div>
+		
+	</div>
+			
+		
+			<div class="clear"></div>
+			
+		</div>
+		
+		<div id="tabs-2">
+			<div class="column full">
+		
+			<div class="box themed_box">
+			<h2 class="box-header">EBAY Account </h2>
+			<div class="box-content">
+				 <table class="display" id="">
+                <thead>
+                    <tr>
+                	 <th></th>
+                     <th>EBAY username</th>
+                     <th>Session EXTIME</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?
+				foreach($accounttoken->result() as $row){
+					?>
+					<tr>
+						<td><a href='<?=$url . "order/seller_del" ?>/<?=$row->accounttokenid?>'>DEL</a></td>
+					<td><a href='<?=$url . "order/seller_detail" ?>/<?=$row->accounttokenid?>'><?=$row->username?></a></td>
+					<td><?=$row->exptime?></td>
+					</tr>
+					<?
+				}
+				?>
+                </tbody>
+            </table>
+				 
+			
+			</div>
+		</div>
+		
+		<div class="box themed_box">
+			<h2 class="box-header">EBAY Account </h2>
+			<div class="box-content">
+				  <form id="categoryval" method="post" action='<?=$url; ?>order/seller_adds'>
+				
+				<label class="form-label"> ebay 帳號 </label>
+				<input class="form-field small" type="text" value=""  name="username">
+
+				<label class="form-label"> paypal 帳號： </label>
+				<input class="form-field 20px" type="text" value="" name="paypal">
+				
+				<label class="form-label"> 名稱： </label>
+				<input class="form-field small big" type="text" value="" name="name">
+				<label class="form-label"> 郵遞區號： </label>
+				<input class="form-field 20px" type="text" value="" name="zipcode">
+				<label class="form-label"> 地址： </label>
+				<input class="form-field  small big" type="text" value="" name="addr">
+				<label class="form-label"> 電話： </label>
+				<input class="form-field 20px" type="text" value="" name="phone">
+				<label class="form-label"> 國家： </label>
+				<input class="form-field 20px" type="text" value="" name="county">
+				<label class="form-label"> 城市： </label>
+				<input class="form-field 20px" type="text" value="" name="city">
+			
+				
+		
+				<br />
+				<input type="submit"  value="ADDS">
+		  </form>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div class="clear"></div>
+	</div>
+		</div>
+		
+		</div>
+		
+		</div>
+	
+	
+	
+
+	<div class="clear"></div>
+</div>
+

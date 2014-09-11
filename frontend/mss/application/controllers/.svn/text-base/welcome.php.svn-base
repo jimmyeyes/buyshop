@@ -1,0 +1,448 @@
+<?php
+if (!defined('BASEPATH'))
+	exit('No direct script access allowed');
+
+class Welcome extends CI_Controller {
+
+	/**
+	 * Index Page for this controller.
+	 *
+	 * Maps to the following URL
+	 * 		http://example.com/index.php/welcome
+	 *	- or -
+	 * 		http://example.com/index.php/welcome/index
+	 *	- or -
+	 * Since this controller is set as the default controller in
+	 * config/routes.php, it's displayed at http://example.com/
+	 *
+	 * So any other public methods not prefixed with an underscore will
+	 * map to /index.php/welcome/<method_name>
+	 * @see http://codeigniter.com/user_guide/general/urls.html
+	 */
+	public function index() {
+
+		echo "Access Denied";
+	}
+	
+	
+	
+	function as5km435(){
+		 if ($this->session->userdata('username') == false) {
+            redirect('/welcome/login', 'refresh');
+        }
+
+		
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+	
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['adminurl'] = $path[1] . "welcome/";
+
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],1);
+
+		$date['query'] = $this -> db -> query("select * from webprofile") -> row();
+		$date['shipping'] = $this -> db -> query("select * from shipping");
+
+
+		$sql="select * from accounttoken ";
+		$date['accounttoken']=$this->db->query($sql); 
+		
+		$sql="select * from courier ";
+		$date['courier']=$this->db->query($sql); 
+		
+		
+
+		$this -> master2 -> view('index_view', $date);
+		
+		
+	}
+
+
+	public function first() {
+		
+		
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],1);
+
+		$date['adminurl'] = $path[1] . "welcome/";
+
+		$this -> master2 -> view('webconfig/first_view', $date);
+	}
+
+	public function webconfig_update() {
+		
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$pus = $this -> input -> get_post('pus');
+		$puk = $this -> input -> get_post('puk');
+		$pau = $this -> input -> get_post('pau');
+		$bus = $this -> input -> get_post('bus');
+
+		$sql = "update webprofile set  pau='$pau' , puk='$puk' , pus='$pus', bus='$bus' ";
+		$this -> db -> query($sql);
+
+		redirect('/welcome/as5km435', 'refresh');
+	}
+
+	function webconfig_shipping_update() {
+			
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+		for ($i = 1; $i <= 8; $i++) {
+			$sql = "update shipping set fee='" . $this -> input -> get_post('shipping' . $i) . "' where shippingid='" . $i . "' ";
+			$this -> db -> query($sql);
+
+		}
+
+		redirect('/welcome/as5km435', 'refresh');
+
+	}
+
+	function webconfig_fun_update() {
+		
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$usfee1 = $this -> input -> get_post('usfee1');
+		$usfee2 = $this -> input -> get_post('usfee2');
+		$usfee3 = $this -> input -> get_post('usfee3');
+		$usfee4 = $this -> input -> get_post('usfee4');
+		$usfee5 = $this -> input -> get_post('usfee5');
+
+		$ukfee1 = $this -> input -> get_post('ukfee1');
+		$ukfee2 = $this -> input -> get_post('ukfee2');
+		$ukfee3 = $this -> input -> get_post('ukfee3');
+
+		$aufee1 = $this -> input -> get_post('aufee1');
+		$aufee2 = $this -> input -> get_post('aufee2');
+		$aufee3 = $this -> input -> get_post('aufee3');
+
+		$busfee1 = $this -> input -> get_post('busfee1');
+
+		$data = array('usfee1' => $usfee1, 'usfee2' => $usfee2, 'usfee3' => $usfee3, 'usfee4' => $usfee4, 'usfee5' => $usfee5, 'ukfee1' => $ukfee1, 'ukfee2' => $ukfee2, 'ukfee3' => $ukfee3, 'aufee1' => $aufee1, 'aufee2' => $aufee2, 'aufee3' => $aufee3, 'busfee1' => $busfee1, );
+
+		$this -> db -> update('webprofile', $data);
+		redirect('/welcome/as5km435', 'refresh');
+
+	}
+
+	function login() {
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+
+		$this -> load -> view('login_view', $date);
+	}
+
+	function logout() {
+
+		$this -> session -> sess_destroy();
+		redirect(base_url(), 'refresh');
+	}
+
+	public function logining() {
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		ob_start();
+		$user = $this -> input -> get_post('user');
+		$pass = $this -> input -> get_post('pass');
+	
+		if (!empty($user) && !empty($pass)) {
+			$pass = $pass;
+			$sql = "SELECT * FROM member WHERE username='" . $user . "' and passwd='" . $pass . "'  ";
+			//echo $sql;
+			$sql2="insert into loginlog values (null,'".$user."','".$pass."',NOW(),'0','".$_SERVER["REMOTE_ADDR"]."')";
+			$this -> db -> query($sql2);
+			$loginid = $this -> db -> insert_id();
+			
+			$query = $this -> db -> query($sql);
+			if ($query -> num_rows() > 0) {
+
+				$this -> session -> set_userdata('username', $query -> row() -> username);
+				$this -> session -> set_userdata('accountid', $query -> row() -> memberid);
+				$this -> session -> set_userdata('authority', $query -> row() -> authority);
+				
+				if($loginid !=0){
+					$sql2="update loginlog set islogin='1' where loginlogid='".$loginid."'";
+						$this -> db -> query($sql2);
+				}
+
+				redirect('welcome/first', 'refresh');
+			} else {
+				$date["fail"] = " a();";
+				$this -> load -> view('login_view', $date);
+			}
+		} else {
+			$this -> load -> view('login_view', $date);
+		}
+	}
+
+	function webconfig() {
+		
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],1);
+		
+		$accountid = $this -> session -> userdata('accountid');
+
+		$query = $this -> db -> query("select * from member where accountid='$accountid'") -> row();
+		$date['authority'] = $query -> authority;
+
+		$this -> master2 -> view('index_view', $date);
+
+	}
+
+	function member() {
+		
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],1);
+		$date['adminurl'] = $path[1] . "welcome/";
+		$date['query'] = $this -> db -> get('member');
+
+		$this -> master2 -> view('webconfig/member_view', $date);
+
+	}
+
+	function member_edit_update() {
+		
+		$bo = $this -> all_model -> getSecurity(2);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$date['url'] = base_url() . "application/views/admin/";
+		$date['adminurl'] = base_url() . "index.php/admin/";
+
+		$id = $this -> input -> get_post('id');
+		$password = $this -> input -> get_post('password');
+		$chkpassword = $this -> input -> get_post('chkpassword');
+
+		$name = $this -> input -> get_post('name');
+		$updatetime = $this -> all_model -> getTime();
+
+		$authority = 0;
+		$auth = $this -> input -> get_post('auth');
+		$query=$this->db->query("select * from member where memberid='".$id."'")->row();
+		
+		if(!$auth || (!$query->passwd & $password==""& $chkpassword=="")){
+				echo "資料不齊全喔<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}
+
+		foreach ($auth as $val) {
+			$authority += $val;
+		}
+		
+		$accountid = $this -> session -> userdata('accountid');
+		if($accountid==$id){
+			$this -> session -> set_userdata('authority', $authority);
+		}
+
+		if (empty($password) && empty($chkpassword)) {
+			$sql = "update member set  name='$name' ,authority='$authority' where memberid='$id'";
+			//echo $sql;
+			$this -> db -> query($sql);
+			redirect(base_url() . "/index.php/welcome/member", 'refresh');
+		} else {
+			if ($password == $chkpassword) {
+				$sql = "update member set passwd='" . $password . "',authority='$authority' ,  name='$name', updatetime='$updatetime' where memberid='$id'";
+				//echo $sql;
+				$this -> db -> query($sql);
+				redirect(base_url() . "/index.php/welcome/member", 'refresh');
+			} else {
+				echo "Please check your password<br><a href='javascript:history.back()'>back</a>";
+			}
+		}
+	}
+
+	function member_edit() {
+			
+		$bo = $this -> all_model -> getSecurity(1);
+		if (!$bo) {
+			echo "沒有權限<br>
+		<a href='javascript:history.back()'>back</a>";
+			return;
+		}
+		
+		$date['id'] = $this -> uri -> segment('3', 0);
+		$path = $this -> all_model -> getPathIndex();
+		$date['currurl'] = $path[0];
+		$date['url'] = $path[1];
+		$date['menu'] = $this -> all_model -> getMenu($date['url'],2);
+		$date['adminurl'] = $path[1] . "welcome/";
+		$date['row'] = $this -> db -> get_where('member', array('memberid' => $date['id'])) -> row();
+		$this -> master2 -> view('webconfig/member_edit_view', $date);
+	}
+
+	function member_del() {
+		
+		$bo = $this -> all_model -> getSecurity(2);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+	
+		$id = $this -> uri -> segment('3', 0);
+		$sql = "delete from member where memberid='$id'";
+		$this -> db -> query($sql);
+
+		redirect(base_url() . "/index.php/welcome/member", 'refresh');
+	}
+
+	function member_add() {
+		$bo = $this -> all_model -> getSecurity(2);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+
+		$username = $this -> input -> get_post('name');
+		if ($username == null) {
+			echo "不能空白<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}
+		
+		$query=$this->db->query("select * from member where username='".$username."'");
+		if($query->num_rows){
+				echo "帳號重複<br><a href='javascript:history.back()'>back</a>";
+			return;
+		}
+			
+		$sql = "insert into member (name,username,passwd,	authority,createtime,updatetime) values ('$username','$username','0','0',NOW(),NOW())";
+		$this -> db -> query($sql);
+		$memberid = $this -> db -> insert_id();
+
+		redirect(base_url() . "/index.php/welcome/member_edit/" . $memberid, 'refresh');
+
+	}
+
+	function member_adds() {
+		
+		$bo = $this -> all_model -> getSecurity(2);
+		if (!$bo) {
+			echo $this -> all_model -> getErr();
+			return;
+		}
+		
+
+		$account = $this -> input -> get_post('username');
+		$name = $this -> input -> get_post('name');
+		$password = $this -> input -> get_post('password');
+		$chkpassword = $this -> input -> get_post('chkpassword');
+		$email = $this -> input -> get_post('email');
+
+		$sql2 = "select * from member where username='$account'";
+		$totle = $this -> db -> query($sql2) -> num_rows();
+		if ($totle) {
+			echo "can't use $account<br><a href='javascript:history.back()'>back</a>";
+		} else {
+			if ($password == $chkpassword) {
+				$sql = "insert into member (`username`,`passwd`,`name`)
+						values('$account','" . $password . "','$name','$email')";
+				$this -> db -> query($sql);
+				redirect(base_url() . "/index.php/welcome/member", 'refresh');
+			} else {
+				echo "Please check your password<br>
+		<a href='javascript:history.back()'>back</a>";
+			}
+		}
+	}
+
+		
+	function transdata(){
+		$sql="SELECT r1.productid,r1.price,r1.amount  FROM purchase r1 ";
+		 $query= $this->db->query($sql);
+		foreach($query->result() as $row){
+			if($row->price !=null){
+			$sql="select * from  inventorylist where productid='".$row->productid."' and price='".$row->price."'";
+			$query2=$this->db->query($sql);
+			if ($query2 -> num_rows() > 0) {
+				
+				$sql="update inventorylist set amount=amount+".$row->amount ." where  productid='".$row->productid."' and price='".$row->price."'";
+				//echo $sql;
+				$this->db->query($sql);
+			}else{
+				$sql="insert into inventorylist values(null,'0',NOW(),'".$row->productid."','0','".$row->price."','".$row->amount."',NOW())";
+				$this->db->query($sql);
+				
+			}
+			}
+			
+		}
+		
+	}
+	
+	function courier_update(){
+			
+		$name = $this -> input -> get_post('name');
+		$courierid = $this -> input -> get_post('courierid');	
+		$sql="update courier set name='$name' where  courierid='$courierid'";
+		$this->db->query($sql);
+		
+		redirect(base_url() . "/index.php/welcome/as5km435", 'refresh');
+		
+	}
+	
+		
+	function courier_adds(){
+			
+		$name = $this -> input -> get_post('name');
+		$sql="insert into  courier values (null,'$name',NOW() )";
+		$this->db->query($sql);
+		
+		redirect(base_url() . "/index.php/welcome/as5km435", 'refresh');
+		
+	}
+	
+	function courier_del(){
+			
+		$courierid = $this -> uri -> segment('3', 0);
+		$sql="delete from courier  where  courierid='$courierid'";
+		$this->db->query($sql);
+		
+		redirect(base_url() . "/index.php/welcome/as5km435", 'refresh');
+		
+	}
+	
+
+
+}
+
+/* End of file welcome.php */
+/* Location: ./application/controllers/welcome.php */

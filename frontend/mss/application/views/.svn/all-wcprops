@@ -1,0 +1,113 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/mss/!svn/ver/116/application/views
+END
+inventory_back_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mss/!svn/ver/80/application/views/inventory_back_view.php
+END
+adminlib_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/mss/!svn/ver/114/application/views/adminlib_view.php
+END
+inventory_detail_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/mss/!svn/ver/100/application/views/inventory_detail_view.php
+END
+preorder_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/mss/!svn/ver/100/application/views/preorder_view.php
+END
+balance_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/mss/!svn/ver/100/application/views/balance_view.php
+END
+index.html
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/mss/!svn/ver/1/application/views/index.html
+END
+invoice_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/mss/!svn/ver/100/application/views/invoice_view.php
+END
+account_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/mss/!svn/ver/100/application/views/account_view.php
+END
+inventory_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/mss/!svn/ver/100/application/views/inventory_view.php
+END
+accounttype_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/mss/!svn/ver/80/application/views/accounttype_view.php
+END
+accounttype_edit_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/mss/!svn/ver/80/application/views/accounttype_edit_view.php
+END
+companybath_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mss/!svn/ver/100/application/views/companybath_view.php
+END
+company_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/mss/!svn/ver/101/application/views/company_view.php
+END
+index_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mss/!svn/ver/115/application/views/index_view.php
+END
+login_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/mss/!svn/ver/1/application/views/login_view.php
+END
+income_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/mss/!svn/ver/100/application/views/income_view.php
+END
+order_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/mss/!svn/ver/100/application/views/order_view.php
+END
+company_edit_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/mss/!svn/ver/83/application/views/company_edit_view.php
+END

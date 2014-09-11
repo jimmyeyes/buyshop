@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/mss/!svn/ver/114/application/views/purchase
+END
+preorder_detail_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/mss/!svn/ver/102/application/views/purchase/preorder_detail_view.php
+END
+historypur_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/mss/!svn/ver/102/application/views/purchase/historypur_view.php
+END
+tabsbath_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mss/!svn/ver/112/application/views/purchase/tabsbath_view.php
+END
+tabs_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/mss/!svn/ver/114/application/views/purchase/tabs_view.php
+END
+purchase_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/mss/!svn/ver/114/application/views/purchase/purchase_view.php
+END
+purinvent_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/mss/!svn/ver/103/application/views/purchase/purinvent_view.php
+END
+purinvent_detail_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/mss/!svn/ver/102/application/views/purchase/purinvent_detail_view.php
+END
+order_detail_view.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/mss/!svn/ver/102/application/views/purchase/order_detail_view.php
+END
