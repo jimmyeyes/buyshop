@@ -1,0 +1,1280 @@
+<?php
+
+if (!defined('BASEPATH'))
+	exit('No direct script access allowed');
+
+class All_model extends CI_Model {
+
+	var $schedule;
+	var $time;
+	var $url="https://api.sandbox.ebay.com/ws/api.dll";
+	var $runame="none-com.jwliu.ebay-nqjvlqwzo";
+	var $cer;
+	var $dev;
+	var $app;
+
+	function __construct() {
+
+		// 呼叫模型(Model)的建構函數
+		parent::__construct();
+		
+	$sql="select *  from webauth ";
+	//echo $sql;
+	$query=$this->db->query($sql);
+	foreach($query->result() as $row){
+		$this->cer=$row->cert;
+		$this->dev=$row->dev;
+		$this->app=$row->app;
+	}
+		
+	}
+	
+	
+function gettoken($sessionid)
+{
+    // create the xml request that will be POSTed
+    $url="https://signin.sandbox.ebay.com/ws/eBayISAPI.dll?SignIn&RuName=".$this->runame."&SessID=".$sessionid;
+	//echo $url;
+	?>
+	<input type="button" value="開新視窗" onclick="window.open(' <?=$url?> ', 'Yahoo');" />
+<?
+} // function	
+
+function getsession()
+{
+    // create the xml request that will be POSTed
+$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<GetSessionIDRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RuName>'.$this->runame.'</RuName>
+</GetSessionIDRequest>';
+
+  return $this->runfunction($post_string,"GetSessionID");
+    
+   
+} // function
+	
+	
+	function getPaypalURL($item){
+		
+		return "<a target='_blank' href='http://cgi.sandbox.ebay.com/ws/eBayISAPI.dll?ViewItem&item=$item'>$item</a>";
+		
+	}
+	
+	function getItemURL($item){
+		
+		return "<a target='_blank' href='http://cgi.sandbox.ebay.com/ws/eBayISAPI.dll?ViewItem&item=$item'>$item</a>";
+		
+	}
+
+	function getPath() {
+		$url = base_url() . "";
+		$adminurl = base_url() . "index.php/welcome";
+
+		return array($url, $adminurl);
+	}
+
+	function getPathIndex() {
+		$url = base_url() . "";
+		$adminurl = base_url() . "index.php/";
+
+		return array($url, $adminurl);
+	}
+
+	function getTime() {
+
+		date_default_timezone_set("Asia/Taipei");
+		$datestring = "%Y-%m-%d %h:%i:%s";
+		$time = time();
+
+		return mdate($datestring, $time);
+	}
+
+	function getYear() {
+
+		date_default_timezone_set("Asia/Taipei");
+		$datestring = "%Y";
+		$time = time();
+
+		return mdate($datestring, $time);
+	}
+
+	function getDate() {
+
+		date_default_timezone_set("Asia/Taipei");
+		$datestring = "%Y-%m-%d";
+		$time = time();
+
+		return mdate($datestring, $time);
+	}
+
+	function getPurchasetype($id) {
+
+		$id = $id - 1;
+		$str = "";
+		$arr = array('待訂', '已訂', '待入庫');
+		$str = $arr[$id];
+		return $str;
+	}
+	
+	function getPayType($id) {
+
+		$str = "";
+		$arr = array('待付','結清' );
+		$str = $arr[$id];
+		return $str;
+	}
+	
+	function getCompany($id) {
+
+		$query=$this->db->query("select * from company where companyid='".$id."'")->row();
+		return $query->companyname;
+	}
+	
+	function getProduct($id) {
+
+		$query=$this->db->query("select * from product where productid='".$id."'")->row();
+		return $query->prodname;
+	}
+
+	function marry($id) {
+		$str = "";
+
+		$arr = array('未婚', '已婚');
+		$str = $arr[$id];
+		return $str;
+	}
+
+	function getAlPay($id) {
+
+		
+		$arr = array('現金', '支票');
+		$str = $arr[$id];
+		return $str;
+	}
+
+	function getDallor() {
+
+		return array('美金', '英鎊', '澳幣', '電匯');
+
+	}
+
+	function getSecurity($val) {
+
+		$authority = $this -> session -> userdata('authority');
+		if ($authority) {
+
+			if (($val & $authority) == $val) {
+				return true;
+			} else {
+				  if ($this->session->userdata('username') == false) {
+            redirect('/welcome/login', 'refresh');
+        }
+					
+				
+				return false;
+			}
+
+		} else {
+		 if ($this->session->userdata('username') == false) {
+            redirect('/welcome/login', 'refresh');
+        	}
+			return false;
+		}
+
+	}
+	
+	function getAuth(){
+		
+		$arr=array(
+'系統設置'=>1,
+'使用者管理'=>2,
+'廠商資料'=>4,
+'商品資料'=>8,
+'採購'=>16,
+'庫存管理'=>32,
+'帳務管理'=>64,
+'商品售價權限'=>128,
+'廠商清單金額權限'=>256,
+'訂單管理'=>512,
+'上傳追蹤碼'=>1024,
+
+);
+		return 	$arr;
+	}
+	
+function getGramPrice($gram){
+		$price=0;
+		
+		$temp1=$gram % 20;
+		if($temp1==0){
+			$temp2=intval($gram / 20);
+			//echo $temp2;
+			$price=($temp2-1)*10+13+65;
+		}else{
+			$temp2=intval($gram / 20);
+			//echo $temp2;
+			$price=($temp2)*10+13+65;
+		}
+		
+
+		return $price;	
+		
+	}
+	
+	function getBalance($val){
+		$val=$val-1;
+		$arr = array('資產','負債', '業主權益');
+		$str = $arr[$val];
+		return $str;
+		
+	}
+	
+	function getInout($val){
+		
+		$arr = array('收入', '費用','成本');
+		$str = $arr[$val];
+		return $str;
+		
+	}
+	
+	function getInvoicetype($val){
+		$val=$val-1;
+		$arr = array('進項發票', '銷項發票');
+		$str = $arr[$val];
+		return $str;
+	}
+	
+	function getErr(){
+		$str= "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />";
+			$str.= "沒有權限<br><a href='javascript:history.back()'>back</a>";
+			return $str;
+		
+	}
+	
+	function getMenu($url,$active){
+		
+	$menu="<ul id=\"navbar\">";
+   
+    $authority=$this->session->userdata('authority');
+	if(($authority&1)==1){
+		$menu.=" <li ";
+		
+		if($active==1){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=".$url."welcome/as5km435>系統設置</a>";
+		
+		if($active==1){
+	if (($authority & 2) == 2) {
+		
+		$menu.="<ul><li class=\"subbutton white\" >  <a href=" . $url . "welcome/member>使用者管理</a></li></ul>";}
+		$menu.="</li>";}
+	}
+	
+	if (($authority & 4) == 4) {
+		$menu.=" <li ";
+		
+		if($active==4){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=" . $url . "company/company>廠商資料</a></li>";}
+	if (($authority & 8) == 8) {
+		$menu.=" <li ";
+		
+		if($active==8){
+			$menu.="class='active'";
+		}  
+		$menu.=" > <a href=".$url."product/product>商品資料</a>";
+		if($active==8){
+    		$menu.=" <ul>";
+			$menu.="		<li><a class=\"subbutton white\" href='".$url."product/productcategory'><span ></span >商品類別維護</a></li>";
+			$menu.="</ul>";
+		}  
+   		 $menu.=" </li>";}
+	if (($authority & 16) == 16) {
+		$menu.="
+     <li ";
+		
+		if($active==16){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=".$url."purchase/purchase>採購</a> ";
+    	if($active==16){
+		$menu.= "<ul>";
+			//$menu.="<li><a class=\"subbutton white\" href='".$url."purchase/index/1'><span ></span >待訂</a></li>";
+			//$menu.="<li><a class=\"subbutton white\" href='".$url."purchase/index/2'><span ></span>已訂</a></li>";
+			////$menu.="<li><a class=\"subbutton white\" href='".$url."purchase/index/4'><span ></span>歷史訂單</a></li>";
+		  $menu.="<li><a class=\"subbutton white\" href='".$url."purchase/detail'><span ></span>詳細</a></li>";
+			
+		
+		$menu.="</ul>";
+		}
+     $menu.="</li>";
+		}
+	if (($authority & 32) == 32) {
+		$menu.=" <li ";
+		
+		if($active==32){
+			$menu.="class='active'";
+		}  
+		$menu.=" >   <a href=".$url."inventory/inventory>庫存管理</a>";
+		
+		if($active==32){
+		$menu.= "<ul><li class=\"subbutton white\" >  <a href=" . $url . "inventory/inventory_back>退貨列表</a></li></ul>";
+		}  
+		
+		$menu.="</li>";}
+	
+	
+	if (($authority & 64) == 64) {
+		$menu.=" <li ";
+		
+		if($active==64){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=".$url."account/account>帳務管理</a>";
+      	if($active==64){
+  	 		$menu.="  <ul>";
+			$menu.=" <li><a class=\"subbutton white\" href='".$url."account/invoicelist'><span ></span >發票管理</a></li>	";
+			//$menu.=" <li><a class=\"subbutton white\" href='".$url."account/accounttype'><span ></span >會計科目管理</a></li>	";
+			$menu.=" 	<li><a class=\"subbutton white\" href='".$url."account/income'><span ></span >損益表</a></li>	";
+			$menu.=" 	<li><a class=\"subbutton white\" href='".$url."account/balance'><span ></span >資產負債表</a></li>	";
+			$menu.=" </ul>";
+		}  
+			$menu.="</li>";
+	}
+	
+	$authsql="select * from webprofile";
+	$authquery=$this->db->query($authsql)->row();
+	
+	if($authquery->ebay==1){
+	
+	if (($authority & 512) == 512) {
+		$menu.=" <li ";
+		
+		if($active==512){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=" . $url . "order/order>訂單管理</a>";
+	
+		/*if($active==512){
+  	 	$menu.="  <ul>";
+			$menu.=" <li><a class=\"subbutton white\" href='".$url."order/seller'><span ></span>賣家帳號設定</a></li>	";
+			
+
+			$menu.=" </ul>";
+		} */ 
+		
+			$menu.="</li>";
+	
+	}
+	
+	/*if (($authority & 1024) == 1024) {
+		$menu.=" <li ";
+		if($active==1024){
+			$menu.="class='active'";
+		}  
+		$menu.=" >  <a href=" . $url . "order/tracknumber>上傳運送編號</a>";
+			$menu.="</li>";
+	}*/
+	
+	
+	}
+	
+	
+	$menu.="</ul>";
+
+
+	return $menu;
+		
+	}
+
+function runfunction($post_string,$callname){
+		
+		//echo "start runfunction";
+		
+	  $session  = curl_init($this->url);                       // create a curl session
+
+    curl_setopt($session, CURLOPT_POST, true);              // POST request type
+    curl_setopt($session, CURLOPT_POSTFIELDS, $post_string); // set the body of the POST
+    curl_setopt($session, CURLOPT_RETURNTRANSFER, true);    // return values as a string - not to std out
+    
+    
+    $headers = array(
+      "X-EBAY-API-CALL-NAME:".$callname."",
+      "X-EBAY-API-SITEID:0",                                // Site 0 is for US
+      "X-EBAY-API-COMPATIBILITY-LEVEL:837",
+       "X-EBAY-API-CERT-NAME:".$this->cer."",
+      "X-EBAY-API-DEV-NAME:".$this->dev."",
+      "X-EBAY-API-APP-NAME:".$this->app."",
+      "Content-Type:text/xml;charset=utf-8"
+    );
+    curl_setopt($session, CURLOPT_HTTPHEADER, $headers);    //set headers using the above array of headers
+
+    $responseXML = curl_exec($session);                     // send the request
+    curl_close($session);
+	
+	//echo "end runfunction";
+
+    return $responseXML;  // returns a string
+}
+
+
+function GetOrders($accountid){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}	
+	$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<GetOrdersRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+  <NumberOfDays>5</NumberOfDays>
+<WarningLevel>High</WarningLevel>
+</GetOrdersRequest>​​';
+
+
+
+return $this->runfunction($post_string,"GetOrders");
+
+   
+}
+
+function GetOrderTransactions($accountid){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+
+
+	
+	$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<GetOrderTransactionsRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+  <OrderIDArray>
+    <OrderID>110124838437-27121149001</OrderID>
+  </OrderIDArray>
+<WarningLevel>High</WarningLevel>
+</GetOrderTransactionsRequest>​​';
+
+
+
+return $this->runfunction($post_string,"GetOrderTransactions");
+
+   
+}
+
+
+
+function AddItem($accountid,$productid){
+	
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+	
+		
+$Title="";
+$Description="";
+$CategoryID="";
+$StartPrice="";
+$ConditionID="";
+$Country="";
+$Currency="USD";
+$DispatchTimeMax="";
+$ListingDuration="";
+$ListingType="";
+$PaymentMethods="";
+$PayPalEmailAddress="";
+$PostalCode="";
+$Quantity="";
+$ReturnsAcceptedOption="";
+
+$RefundOption="";
+$RefundOption="";
+$ReturnsWithinOption="";
+$ReturnsDescription="";
+$ShippingCostPaidByOption="";
+$ShippingType="";
+$ShippingServicePriority="";
+$ShippingService="";
+$ShippingServiceCost="";
+$Site="US";
+$BuyItNowPrice="";
+
+
+$InternationalShippingService="";
+$InternationalShippingServicePriority="";
+$InternationalShippingServiceCost="";
+$InternationalShipToLocation="";
+$brand="";
+$mpn="";
+$ean="";
+$upc="";
+
+	$sql="select * from product where productid='".$productid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		 	
+$Title=$row->prodname;
+$Description=$row->spec;
+$CategoryID=$row->category;
+$StartPrice=$row->StartPrice;
+$BuyItNowPrice=$row->StartPrice;
+$ConditionID=$row->ConditionID;
+$Country=$row->Country;
+//$Currency=$row->Currency;
+$DispatchTimeMax=$row->DispatchTimeMax;
+$ListingDuration=$row->ListingDuration;
+$ListingType=$row->ListingType;
+$PaymentMethods=$row->PaymentMethods;
+$PayPalEmailAddress=$row->PayPalEmailAddress;
+$Quantity=$row->Quantity;
+
+$ReturnsAcceptedOption=$row->ReturnsAcceptedOption;
+$RefundOption=$row->RefundOption;
+$ReturnsWithinOption=$row->ReturnsWithinOption;
+
+$ReturnsDescription=$row->ReturnsDescription;
+$ShippingCostPaidByOption=$row->ShippingCostPaidByOption;
+$ShippingType=$row->ShippingType;
+$ShippingServicePriority=$row->ShippingServicePriority;
+$ShippingService=$row->ShippingService;
+$ShippingServiceCost=$row->ShippingServiceCost;
+
+$InternationalShippingService=$row->InternationalShippingService;
+$InternationalShippingServicePriority=$row->InternationalShippingServicePriority;
+$InternationalShippingServiceCost=$row->InternationalShippingServiceCost;
+$InternationalShipToLocation=$row->InternationalShipToLocation;
+
+$brand=$row->brand;
+$mpn=$row->mpn;
+$ean=$row->ean;
+$upc=$row->upc;
+
+	}
+
+
+
+
+$post_string ="<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<AddItemRequest xmlns=\"urn:ebay:apis:eBLBaseComponents\">
+<ErrorLanguage>en_US</ErrorLanguage>
+<WarningLevel>High</WarningLevel>
+<Item>
+<Title>".$Title."</Title>
+<Description><![CDATA[".$Description."]]></Description>
+<PrimaryCategory>
+<CategoryID>".$CategoryID."</CategoryID>
+</PrimaryCategory>
+<StartPrice>".$StartPrice."</StartPrice>
+<ConditionID>".$ConditionID."</ConditionID>
+<Country>".$Country."</Country>
+<Currency>".$Currency."</Currency>
+<DispatchTimeMax>".$DispatchTimeMax."</DispatchTimeMax>
+<ListingDuration>".$ListingDuration."</ListingDuration>
+<ListingType>".$ListingType."</ListingType>
+<PaymentMethods>".$PaymentMethods."</PaymentMethods>
+<PayPalEmailAddress>".$PayPalEmailAddress."</PayPalEmailAddress>
+";
+
+
+$sql="select * from product_img where proid='".$productid."'";
+$num=$this->db->query($sql)->num_rows();
+$query=$this->db->query($sql);
+
+if($num){
+  $post_string .=  "<PictureDetails>";
+	foreach($query->result() as $rowimg){
+      $post_string .="<PictureURL>".base_url() . $rowimg->url."</PictureURL>";
+	}	
+		
+    $post_string .=  "</PictureDetails>";
+}
+ $post_string .=  "
+<Quantity>".$Quantity."</Quantity>
+<Location>TＷ</Location>
+<ReturnPolicy>
+<ReturnsAcceptedOption>".$ReturnsAcceptedOption."</ReturnsAcceptedOption>
+<RefundOption>".$RefundOption."</RefundOption>
+<ReturnsWithinOption>".$ReturnsWithinOption."</ReturnsWithinOption>
+<Description>".$ReturnsDescription."</Description>
+<ShippingCostPaidByOption>".$ShippingCostPaidByOption."</ShippingCostPaidByOption>
+</ReturnPolicy>
+<ShippingDetails>
+<ShippingType>".$ShippingType."</ShippingType>
+<GlobalShipping>true</GlobalShipping>
+<InternationalShippingServiceOption>
+<ShippingService>".$InternationalShippingService."</ShippingService> 
+<ShippingServiceCost currencyID=\"USD\">".$InternationalShippingServiceCost."</ShippingServiceCost>
+<ShippingServiceAdditionalCost currencyID=\"USD\">0.0</ShippingServiceAdditionalCost> 
+<ShippingServicePriority>3</ShippingServicePriority> 
+<ShipToLocation>".$InternationalShipToLocation."</ShipToLocation>
+</InternationalShippingServiceOption>
+<ShippingServiceOptions>
+<ShippingServicePriority>".$ShippingServicePriority."</ShippingServicePriority>
+<ShippingService>".$ShippingService."</ShippingService>
+<ShippingServiceCost>".$ShippingServiceCost."</ShippingServiceCost>
+</ShippingServiceOptions>
+</ShippingDetails>
+<ShipToLocations>".$InternationalShipToLocation."</ShipToLocations>
+<Site>".$Site."</Site>
+</Item>
+<RequesterCredentials>
+<eBayAuthToken>".$token."</eBayAuthToken>
+</RequesterCredentials>
+</AddItemRequest>";
+
+
+//echo $post_string;
+  return $this->runfunction($post_string,"AddItem");
+
+   
+}
+
+
+function AddFixPriceItem($accountid,$productid){
+	
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	//echo $sql;
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+	
+		
+$Title="";
+$Description="";
+$CategoryID="";
+$StartPrice="";
+$ConditionID="";
+$Country="";
+$Currency="USD";
+$DispatchTimeMax="";
+$ListingDuration="";
+$ListingType="";
+$PaymentMethods="";
+$PayPalEmailAddress="";
+$PostalCode="";
+$Quantity="";
+$ReturnsAcceptedOption="";
+$RefundOption="";
+$RefundOption="";
+$ReturnsWithinOption="";
+$ReturnsDescription="";
+$ShippingCostPaidByOption="";
+$ShippingType="";
+$ShippingServicePriority="";
+$ShippingService="";
+$ShippingServiceCost="";
+$Site="US";
+$BuyItNowPrice="";
+
+$InternationalShippingService="";
+$InternationalShippingServicePriority="";
+$InternationalShippingServiceCost="";
+$InternationalShipToLocation="";
+$brand="";
+$mpn="";
+$ean="";
+$upc="";
+$FreeShipping="";
+
+
+	$sql="select * from product where productid='".$productid."'";
+		$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		 	
+$Title=$row->prodname;
+$Description=$row->spec;
+$CategoryID=$row->category;
+$StartPrice=$row->StartPrice;
+$BuyItNowPrice=$row->StartPrice;
+$ConditionID=$row->ConditionID;
+$Country=$row->Country;
+//$Currency=$row->Currency;
+$DispatchTimeMax=$row->DispatchTimeMax;
+$ListingDuration=$row->ListingDuration;
+$ListingType=$row->ListingType;
+$PaymentMethods=$row->PaymentMethods;
+$PayPalEmailAddress=$row->PayPalEmailAddress;
+
+
+
+//$PostalCode=$row->PostalCode;
+//<PostalCode>".$PostalCode."</PostalCode>
+
+$Quantity=$row->Quantity;
+$ReturnsAcceptedOption=$row->ReturnsAcceptedOption;
+$RefundOption=$row->RefundOption;
+$ReturnsWithinOption=$row->ReturnsWithinOption;
+$ReturnsDescription=$row->ReturnsDescription;
+$ShippingCostPaidByOption=$row->ShippingCostPaidByOption;
+$ShippingType=$row->ShippingType;
+$ShippingServicePriority=$row->ShippingServicePriority;
+$ShippingService=$row->ShippingService;
+$ShippingServiceCost=$row->ShippingServiceCost;
+
+
+$InternationalShippingService=$row->InternationalShippingService;
+$InternationalShippingServicePriority=$row->InternationalShippingServicePriority;
+$InternationalShippingServiceCost=$row->InternationalShippingServiceCost;
+$InternationalShipToLocation=$row->InternationalShipToLocation;
+
+$brand=$row->brand;
+$mpn=$row->mpn;
+$ean=$row->ean;
+$upc=$row->upc;
+
+$FreeShipping=$row->FreeShipping;
+
+
+}
+
+
+/*
+ * <ProductListingDetails>
+<BrandMPN>
+<Brand>".$brand."</Brand>
+<MPN>".$mpn."</MPN>
+</BrandMPN>
+<EAN>".$ean."</EAN>  
+<UPC>".$upc."</UPC>
+</ProductListingDetails>
+ * 
+ * <InternationalShippingServiceOption>
+<ShippingService>".$InternationalShippingService."</ShippingService>
+<ShippingServiceCost>".$InternationalShippingServiceCost."</ShippingServiceCost>
+<ShippingServiceAdditionalCost>0</ShippingServiceAdditionalCost>
+<ShippingServicePriority>".$InternationalShippingServicePriority."</ShippingServicePriority>
+<ShipToLocation>".$InternationalShipToLocation."</ShipToLocation>
+</InternationalShippingServiceOption>
+ * 
+ * */
+
+
+$post_string ="<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<AddFixedPriceItemRequest xmlns=\"urn:ebay:apis:eBLBaseComponents\">
+<ErrorLanguage>en_US</ErrorLanguage>
+<WarningLevel>High</WarningLevel>
+<Item>
+<Title>".$Title."</Title>
+<Description> <![CDATA[".$Description."]]></Description>
+<PrimaryCategory>
+<CategoryID>".$CategoryID."</CategoryID>
+</PrimaryCategory>
+
+<StartPrice>".$StartPrice."</StartPrice>
+<CategoryMappingAllowed>true</CategoryMappingAllowed>
+<ConditionID>".$ConditionID."</ConditionID>
+<Country>".$Country."</Country>
+<Currency>".$Currency."</Currency>
+<DispatchTimeMax>".$DispatchTimeMax."</DispatchTimeMax>
+<ListingDuration>".$ListingDuration."</ListingDuration>
+<ListingType>".$ListingType."</ListingType>
+<PaymentMethods>".$PaymentMethods."</PaymentMethods>
+<PayPalEmailAddress>".$PayPalEmailAddress."</PayPalEmailAddress>";
+
+
+$sql="select * from product_img where proid='".$productid."'";
+$num=$this->db->query($sql)->num_rows();
+$query=$this->db->query($sql);
+if($num){
+  $post_string .=  "<PictureDetails>";
+	foreach($query->result() as $rowimg){
+      $post_string .="<PictureURL>".base_url() . $rowimg->url."</PictureURL>";
+	}	
+		
+    $post_string .=  "</PictureDetails>";
+}
+
+ $post_string .="
+<Quantity>".$Quantity."</Quantity>
+<Location>TW</Location>
+<ReturnPolicy>
+<ReturnsAcceptedOption>".$ReturnsAcceptedOption."</ReturnsAcceptedOption>
+<RefundOption>".$RefundOption."</RefundOption>
+<ReturnsWithinOption>".$ReturnsWithinOption."</ReturnsWithinOption>
+<Description>".$ReturnsDescription."</Description>
+<ShippingCostPaidByOption>".$ShippingCostPaidByOption."</ShippingCostPaidByOption>
+</ReturnPolicy>
+<ShippingDetails>
+<GlobalShipping>true</GlobalShipping>
+<InternationalShippingServiceOption>
+<ShippingService>".$InternationalShippingService."</ShippingService> 
+<ShippingServiceCost currencyID=\"USD\">".$InternationalShippingServiceCost."</ShippingServiceCost>
+<ShippingServiceAdditionalCost currencyID=\"USD\">0.0</ShippingServiceAdditionalCost> 
+<ShippingServicePriority>3</ShippingServicePriority> 
+<ShipToLocation>".$InternationalShipToLocation."</ShipToLocation>
+</InternationalShippingServiceOption>
+<ShippingServiceOptions>
+<ShippingServicePriority>".$ShippingServicePriority."</ShippingServicePriority>
+<ShippingService>".$ShippingService."</ShippingService>";
+if($FreeShipping=="1"){
+	 $post_string .="<FreeShipping>true</FreeShipping>";
+}else{
+	 $post_string .="<ShippingServiceCost>".$ShippingServiceCost."</ShippingServiceCost>";	
+}
+$post_string .="
+</ShippingServiceOptions>
+<ShippingType>".$ShippingType."</ShippingType>
+</ShippingDetails>
+<ShipToLocations>".$InternationalShipToLocation."</ShipToLocations>
+<Site>".$Site."</Site>
+</Item>
+<RequesterCredentials>
+<eBayAuthToken>".$token."</eBayAuthToken>
+</RequesterCredentials>
+</AddFixedPriceItemRequest>";
+
+//echo $post_string;
+
+  return $this->runfunction($post_string,"AddFixedPriceItem");  
+}
+
+
+function GetTransactionDetails($transactionID){
+	$PF_USER="jwliu_api1.me.com";
+	$PF_PWD="1376929173";
+	$PF_SIG="AFcWxV21C7fd0v3bYYYRCpSSRl31AvPRMD10WNGaVSVG.9ERCRjUMZE3";
+	$PF_METHOD="GetTransactionDetails";
+	$VERSION="78";
+	//$TransactionID="3MC17669RG423011M";
+	
+	$methodName_=$PF_METHOD;
+	//$transactionID = urlencode($TransactionID);
+
+	
+// Add request-specific fields to the request string.
+	$nvpStr_ = "&TRANSACTIONID=$transactionID";
+	//echo $nvpStr_;
+	
+	$environment = 'sandbox';
+	// Set up your API credentials, PayPal end point, and API version.
+	$API_UserName = urlencode($PF_USER);
+	$API_Password = urlencode($PF_PWD);
+	$API_Signature = urlencode($PF_SIG);
+	$API_Endpoint = "https://api-3t.paypal.com/nvp";
+	if("sandbox" === $environment || "beta-sandbox" === $environment) {
+		$API_Endpoint = "https://api-3t.$environment.paypal.com/nvp";
+	}
+
+	$version = urlencode('78.0');
+
+	// Set the curl parameters.
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $API_Endpoint);
+	curl_setopt($ch, CURLOPT_VERBOSE, 1);
+
+	// Turn off the server and peer verification (TrustManager Concept).
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POST, 1);
+
+	// Set the API operation, version, and API signature in the request.
+	$nvpreq = "METHOD=$methodName_&VERSION=$version&PWD=$API_Password&USER=$API_UserName&SIGNATURE=$API_Signature$nvpStr_";
+
+	// Set the request as a POST FIELD for curl.
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $nvpreq);
+
+	// Get response from the server.
+	$httpResponse = curl_exec($ch);
+
+	if(!$httpResponse) {
+		exit("$methodName_ failed: ".curl_error($ch).'('.curl_errno($ch).')');
+	}
+
+	// Extract the response details.
+	$httpResponseAr = explode("&", $httpResponse);
+
+	$httpParsedResponseAr = array();
+	foreach ($httpResponseAr as $i => $value) {
+		$tmpAr = explode("=", $value);
+		if(sizeof($tmpAr) > 1) {
+			$httpParsedResponseAr[$tmpAr[0]] = $tmpAr[1];
+		}
+	}
+
+	if((0 == sizeof($httpParsedResponseAr)) || !array_key_exists('ACK', $httpParsedResponseAr)) {
+		exit("Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint.");
+	}
+	
+	if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])) {
+//exit('GetTransactionDetails Completed Successfully: '.print_r($httpParsedResponseAr, true));
+	//print_r($httpParsedResponseAr);
+
+		$RECEIVERBUSINESS= @urldecode($httpParsedResponseAr["RECEIVERBUSINESS"]);	
+		if($RECEIVERBUSINESS=="" )
+			return;
+			$RECEIVEREMAIL= urldecode($httpParsedResponseAr["RECEIVEREMAIL"]);
+			$RECEIVERID= urldecode($httpParsedResponseAr["RECEIVERID"]);
+			$EMAIL= urldecode($httpParsedResponseAr["EMAIL"]);
+			$PAYERID= urldecode($httpParsedResponseAr["PAYERID"]);
+			$PAYERSTATUS= urldecode($httpParsedResponseAr["PAYERSTATUS"]);
+			$COUNTRYCODE= urldecode($httpParsedResponseAr["COUNTRYCODE"]);
+			$SHIPTONAME= urldecode($httpParsedResponseAr["SHIPTONAME"]);
+			$SHIPTOSTREET= urldecode($httpParsedResponseAr["SHIPTOSTREET"]);
+			$SHIPTOCITY= urldecode($httpParsedResponseAr["SHIPTOCITY"]);
+			$SHIPTOSTATE= urldecode($httpParsedResponseAr["SHIPTOSTATE"]);
+			$SHIPTOCOUNTRYCODE= urldecode($httpParsedResponseAr["SHIPTOCOUNTRYCODE"]);
+			$SHIPTOCOUNTRYNAME= urldecode($httpParsedResponseAr["SHIPTOCOUNTRYNAME"]);
+			$SHIPTOZIP= urldecode($httpParsedResponseAr["SHIPTOZIP"]);
+			$ADDRESSOWNER= urldecode($httpParsedResponseAr["ADDRESSOWNER"]);
+			$ADDRESSSTATUS= urldecode($httpParsedResponseAr["ADDRESSSTATUS"]);
+			$SALESTAX= urldecode($httpParsedResponseAr["SALESTAX"]);
+			$SHIPDISCOUNT= urldecode($httpParsedResponseAr["SHIPDISCOUNT"]);
+			$INSURANCEAMOUNT= urldecode($httpParsedResponseAr["INSURANCEAMOUNT"]);
+			$BUYERID= urldecode($httpParsedResponseAr["BUYERID"]);
+			$CLOSINGDATE= urldecode($httpParsedResponseAr["CLOSINGDATE"]);
+			$TIMESTAMP= urldecode($httpParsedResponseAr["TIMESTAMP"]);
+			$CORRELATIONID= urldecode($httpParsedResponseAr["CORRELATIONID"]);
+			$ACK= urldecode($httpParsedResponseAr["ACK"]);
+			$VERSION= urldecode($httpParsedResponseAr["VERSION"]);
+			$BUILD= urldecode($httpParsedResponseAr["BUILD"]);
+			$FIRSTNAME= urldecode($httpParsedResponseAr["FIRSTNAME" ]);
+			$LASTNAME= urldecode($httpParsedResponseAr["LASTNAME"]);
+			$TRANSACTIONID= urldecode($httpParsedResponseAr["TRANSACTIONID"]);
+			$TRANSACTIONTYPE= urldecode($httpParsedResponseAr["TRANSACTIONTYPE"]);
+			$PAYMENTTYPE= urldecode($httpParsedResponseAr["PAYMENTTYPE"]);
+			$ORDERTIME= urldecode($httpParsedResponseAr["ORDERTIME"]);
+			$AMT= urldecode($httpParsedResponseAr["AMT"]);
+			$FEEAMT= urldecode($httpParsedResponseAr["FEEAMT"]);
+			$TAXAMT= urldecode($httpParsedResponseAr["TAXAMT"]);
+			$SHIPPINGAMT= urldecode($httpParsedResponseAr["SHIPPINGAMT"]);
+			$HANDLINGAMT= urldecode($httpParsedResponseAr["HANDLINGAMT"]);
+			$CURRENCYCODE= urldecode($httpParsedResponseAr["CURRENCYCODE"]);
+			$PAYMENTSTATUS= urldecode($httpParsedResponseAr["PAYMENTSTATUS"]);
+			$PENDINGREASON= urldecode($httpParsedResponseAr["PENDINGREASON"]);
+			$REASONCODE= urldecode($httpParsedResponseAr["REASONCODE"]);
+			$SHIPPINGMETHOD= urldecode($httpParsedResponseAr["SHIPPINGMETHOD"]);
+			$PROTECTIONELIGIBILITY= urldecode($httpParsedResponseAr["PROTECTIONELIGIBILITY"]);
+			$PROTECTIONELIGIBILITYTYPE= urldecode($httpParsedResponseAr["PROTECTIONELIGIBILITYTYPE"]);
+			$L_EBAYITEMTXNID0= urldecode($httpParsedResponseAr["L_EBAYITEMTXNID0"]);
+			$L_NAME0= urldecode($httpParsedResponseAr["L_NAME0"]);
+			$L_NUMBER0= urldecode($httpParsedResponseAr["L_NUMBER0"]);
+			$L_QTY0= urldecode($httpParsedResponseAr["L_QTY0"]);
+			$L_TAXAMT0= urldecode($httpParsedResponseAr["L_TAXAMT0"]);
+			$L_SHIPPINGAMT0= urldecode($httpParsedResponseAr["L_SHIPPINGAMT0"]);
+			$L_HANDLINGAMT0= urldecode($httpParsedResponseAr["L_HANDLINGAMT0"]);
+
+			$L_CURRENCYCODE0= urldecode($httpParsedResponseAr["L_CURRENCYCODE0"]);
+			$L_AMT0= urldecode($httpParsedResponseAr["L_AMT0"]);
+
+			$sql="select paypalTransactionDetailid from  paypalTransactionDetail where TRANSACTIONID='$TRANSACTIONID' ";
+			$query=$this->db->query($sql);
+			$count=$query->num_rows();
+			if($count =="0" ){
+				$sql="insert into paypalTransactionDetail values (null,'$RECEIVERBUSINESS','$RECEIVEREMAIL','$RECEIVERID','$EMAIL','$PAYERID',";
+				$sql.="'$PAYERSTATUS','$COUNTRYCODE','$SHIPTONAME','$SHIPTOSTREET','$SHIPTOCITY','$SHIPTOSTATE','$SHIPTOCOUNTRYCODE','$SHIPTOCOUNTRYNAME',";
+				$sql.="'$SHIPTOZIP','$ADDRESSOWNER','$ADDRESSSTATUS','$SALESTAX','$SHIPDISCOUNT','$INSURANCEAMOUNT','$BUYERID','$CLOSINGDATE','$TIMESTAMP',";
+				$sql.="'$CORRELATIONID','$ACK','$VERSION','$BUILD','$FIRSTNAME','$LASTNAME','$TRANSACTIONID','$TRANSACTIONTYPE','$PAYMENTTYPE','$ORDERTIME',";
+				$sql.="'$AMT','$FEEAMT','$TAXAMT','$SHIPPINGAMT','$HANDLINGAMT','$CURRENCYCODE','$PAYMENTSTATUS','$PENDINGREASON','$REASONCODE','$SHIPPINGMETHOD',";
+				$sql.="'$PROTECTIONELIGIBILITY','$PROTECTIONELIGIBILITYTYPE','$L_EBAYITEMTXNID0','$L_NAME0','$L_NUMBER0','$L_QTY0','$L_TAXAMT0','$L_SHIPPINGAMT0','$L_HANDLINGAMT0',";
+				$sql.="'$L_CURRENCYCODE0','$L_AMT0',NOW())";
+			//	echo $sql;
+				$this->db->query($sql);
+			}else{
+			//	echo "update";
+				$row=$query->row();
+				$sql=" update  paypalTransactionDetail set  PAYMENTSTATUS='$PAYMENTSTATUS' ,PENDINGREASON='$PENDINGREASON'  , REASONCODE='$REASONCODE'  ";
+				$sql.=",  PROTECTIONELIGIBILITY='$PROTECTIONELIGIBILITY' , PROTECTIONELIGIBILITYTYPE='$PROTECTIONELIGIBILITYTYPE'   where paypalTransactionDetailid='$row->paypalTransactionDetailid'";
+				
+				$this->db->query($sql);
+			
+			}
+	
+} else  {
+	//echo $transactionID;
+	
+	//exit('GetTransactionDetails failed: ' . print_r($httpParsedResponseAr, true));
+}
+	
+	
+}
+
+
+function UpdateTrackNumber($accountid,$tracknumber,$carrier,$orderid,$OrderLineItemID,$TransactionID){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+
+	
+		$to= date("Y-m-d\TH:i:s\Z");
+		
+	
+$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<CompleteSaleRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+<WarningLevel>High</WarningLevel>
+  <OrderID>'.$orderid.'</OrderID>
+  <OrderLineItemID>'.$OrderLineItemID.'</OrderLineItemID>
+  <Shipment>
+  <ShipmentTrackingDetails>
+    <ShipmentTrackingNumber>'.$tracknumber.'</ShipmentTrackingNumber>
+    <ShippingCarrierUsed>'.$carrier.'</ShippingCarrierUsed>
+    </ShipmentTrackingDetails>
+  </Shipment>
+<TransactionID>'.$TransactionID.'</TransactionID>
+</CompleteSaleRequest>​​';
+
+//echo $post_string;
+
+
+return $this->runfunction($post_string,"CompleteSale");
+
+   
+}
+
+function UploadSiteHostedPictures($accountid,$url,$name){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+	
+$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<UploadSiteHostedPicturesRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+<WarningLevel>High</WarningLevel>
+<ExternalPictureURL>'.$url.'</ExternalPictureURL>
+<PictureName>'.$name.'</PictureName>
+</UploadSiteHostedPicturesRequest>​​';
+
+
+return $this->runfunction($post_string,"UploadSiteHostedPictures");
+
+   
+}
+
+function product_ebay_pic_update($accountid,$productid,$ItemID){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+	
+	
+	
+$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<ReviseFixedPriceItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+<WarningLevel>High</WarningLevel>
+<Item>
+<ItemID>'.$ItemID.'</ItemID>
+';
+
+
+$sql="select * from product_img where proid='".$productid."'";
+$num=$this->db->query($sql)->num_rows();
+$query=$this->db->query($sql);
+if($num){
+  $post_string .=  "<PictureDetails>";
+	foreach($query->result() as $rowimg){
+      $post_string .="<PictureURL>".base_url() . $rowimg->url."</PictureURL>";
+	}	
+		
+    $post_string .=  "</PictureDetails>";
+}
+
+ $post_string .='
+</Item>
+</ReviseFixedPriceItemRequest>​​';
+
+echo $post_string;
+
+
+
+return $this->runfunction($post_string,"ReviseFixedPriceItem");
+
+   
+}
+
+
+function product_ebay_get_item($accountid,$ItemID){
+	$token;
+	$sql="select * from accounttoken where accounttokenid='".$accountid."'";
+	$result =$this->db->query($sql);
+	foreach($result->result() as $row){
+ 		  $token= $row->token;
+	}
+	
+$post_string = '<?xml version="1.0" encoding="utf-8"?>
+<GetItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<RequesterCredentials>
+<eBayAuthToken>'.$token.'</eBayAuthToken>
+</RequesterCredentials>
+<WarningLevel>High</WarningLevel>
+<ItemID>'.$ItemID.'</ItemID>
+</GetItemRequest>​';
+
+//echo $post_string;
+return $this->runfunction($post_string,"GetItem");
+
+   
+}
+
+
+function SearchTransaction($sdate,$edate){
+	$PF_USER="jwliu_api1.me.com";
+	$PF_PWD="1376929173";
+	$PF_SIG="AFcWxV21C7fd0v3bYYYRCpSSRl31AvPRMD10WNGaVSVG.9ERCRjUMZE3";
+	$PF_METHOD="TransactionSearch";
+	$methodName_=$PF_METHOD;
+	
+	if($sdate=="" || $edate==""){
+		$sdate=date('Y-m-d') ;
+		$edate=date("Y-m-d", strtotime("+1 day", strtotime($sdate)));
+	}
+
+// Add request-specific fields to the request string.
+	$nvpStr_ = "&STARTDATE=".$sdate."T0:0:0";
+	//echo $nvpStr_;
+	//&ENDDATE=".$edate."T24:0:0
+	
+	$environment = 'sandbox';
+	// Set up your API credentials, PayPal end point, and API version.
+	$API_UserName = urlencode($PF_USER);
+	$API_Password = urlencode($PF_PWD);
+	$API_Signature = urlencode($PF_SIG);
+	$API_Endpoint = "https://api-3t.paypal.com/nvp";
+	if("sandbox" === $environment || "beta-sandbox" === $environment) {
+		$API_Endpoint = "https://api-3t.$environment.paypal.com/nvp";
+	}
+
+	$version = urlencode('78.0');
+
+	// Set the curl parameters.
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $API_Endpoint);
+	curl_setopt($ch, CURLOPT_VERBOSE, 1);
+
+	// Turn off the server and peer verification (TrustManager Concept).
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POST, 1);
+
+	// Set the API operation, version, and API signature in the request.
+	$nvpreq = "METHOD=$methodName_&VERSION=$version&PWD=$API_Password&USER=$API_UserName&SIGNATURE=$API_Signature".""."$nvpStr_";
+//&TRXTYPE=Q
+	// Set the request as a POST FIELD for curl.
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $nvpreq);
+
+	// Get response from the server.
+	$httpResponse = curl_exec($ch);
+
+	if(!$httpResponse) {
+		exit("$methodName_ failed: ".curl_error($ch).'('.curl_errno($ch).')');
+	}
+
+	// Extract the response details.
+	$httpResponseAr = explode("&", $httpResponse);
+
+	$httpParsedResponseAr = array();
+	foreach ($httpResponseAr as $i => $value) {
+		$tmpAr = explode("=", $value);
+		if(sizeof($tmpAr) > 1) {
+			$httpParsedResponseAr[$tmpAr[0]] = $tmpAr[1];
+		}
+	}
+
+	if((0 == sizeof($httpParsedResponseAr)) || !array_key_exists('ACK', $httpParsedResponseAr)) {
+		exit("Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint.");
+	}
+	
+	//print_r($httpParsedResponseAr);
+	$transid="";
+	
+	
+	if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])) {
+		
+		$count=((count($httpParsedResponseAr)-5)/11);
+		for($i=0;$i<$count;$i++){
+					
+			$TIMESTAMP= urldecode($httpParsedResponseAr["L_TIMESTAMP$i"]);
+			$TIMEZONE= urldecode($httpParsedResponseAr["L_TIMEZONE$i"]);
+			$TYPE= urldecode($httpParsedResponseAr["L_TYPE$i"]);
+			$EMAIL= @urldecode($httpParsedResponseAr["L_EMAIL$i"]);
+			$NAME= urldecode($httpParsedResponseAr["L_NAME$i"]);
+			$TRANSACTIONID= urldecode($httpParsedResponseAr["L_TRANSACTIONID$i"]);
+			$STATUS= urldecode($httpParsedResponseAr["L_STATUS$i"]);
+			$AMT= urldecode($httpParsedResponseAr["L_AMT$i"]);
+			$CURRENCYCODE= urldecode($httpParsedResponseAr["L_CURRENCYCODE$i"]);
+			$FEEAMT= urldecode($httpParsedResponseAr["L_FEEAMT$i"]);
+			$NETAMT= urldecode($httpParsedResponseAr["L_NETAMT$i"]);
+			
+			$sql="select count(paypaltransactionid) as co from  paypaltransaction where TIMESTAMP='$TIMESTAMP' and TIMEZONE='$TIMEZONE'  and AMT='$AMT' and EMAIL='$EMAIL' and TRANSACTIONID='$TRANSACTIONID'";
+			$query=$this->db->query($sql)->row();
+			
+			if($query->co =="0"){
+				
+				if($TRANSACTIONID=="91C66886EF565040V")
+					continue;
+				
+				$sql="insert into paypaltransaction values ('','".$TIMESTAMP."','".$TIMEZONE."','".$TYPE."','".$EMAIL."',\"".$NAME."\",'".$TRANSACTIONID."','".$STATUS."','".$AMT."','".$CURRENCYCODE."','".$FEEAMT."','".$NETAMT."',NOW())";
+				$this->db->query($sql);
+				
+				$this->all_model->GetTransactionDetails($TRANSACTIONID);
+				//echo "insert:"+$TRANSACTIONID;
+				
+				$transid.=$TRANSACTIONID.",";
+			}else{
+				//echo "hasdata".$TRANSACTIONID;
+			}
+			
+		}
+		
+		return $transid;
+		
+	exit('GetTransactionDetails Completed Successfully: '.print_r($httpParsedResponseAr, true));
+} else  {
+	exit('GetTransactionDetails failed: ' . print_r($httpParsedResponseAr, true));
+}
+	
+	
+}
+
+
+function getMemberid($username,$password){
+		$sql="select * from member where username='$username' and passwd='$password'";
+		
+		$query=$this->db->query($sql);
+		$num=$query->num_rows();
+		if($num==0){
+			return "0";
+		}else{
+			return $query->row()->memberid;
+		}
+		
+	
+	}
+	
+
+
+
+
+}
